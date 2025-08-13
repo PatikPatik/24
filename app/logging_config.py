@@ -1,14 +1,16 @@
 from __future__ import annotations
 import logging
 import os
-from python_json_logger import jsonlogger
+from pythonjsonlogger import jsonlogger  # <-- ВАЖНО: pythonjsonlogger, не python_json_logger
 
 def setup_logging() -> None:
     level = os.getenv("LOG_LEVEL", "INFO").upper()
-    logger = logging.getLogger()
-    logger.setLevel(level)
+    root = logging.getLogger()
+    root.setLevel(level)
+
     handler = logging.StreamHandler()
     fmt = jsonlogger.JsonFormatter('%(asctime)s %(levelname)s %(name)s %(message)s')
     handler.setFormatter(fmt)
-    logger.handlers.clear()
-    logger.addHandler(handler)
+
+    root.handlers.clear()
+    root.addHandler(handler)
