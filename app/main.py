@@ -1,17 +1,16 @@
 from __future__ import annotations
-import asyncio
 import logging
-from telegram.ext import Application, ApplicationBuilder, AIORateLimiter
+from telegram.ext import ApplicationBuilder, AIORateLimiter
 from .settings import settings
 from .logging_config import setup_logging
 from .handlers.payments import register_payment_handlers
 
 logger = logging.getLogger(__name__)
 
-async def run() -> None:
+def run() -> None:
     setup_logging()
 
-    application: Application = (
+    application = (
         ApplicationBuilder()
         .token(settings.BOT_TOKEN)
         .rate_limiter(AIORateLimiter())
@@ -20,19 +19,7 @@ async def run() -> None:
 
     register_payment_handlers(application)
 
-    if settings.MODE.lower() == "polling":
-        try:
-            await application.bot.delete_webhook(drop_pending_updates=True)
-        except Exception:
-            pass
-        logger.info("Starting bot in POLLING mode")
-        await application.initialize()
-        await application.start()
-        await application.updater.start_polling(allowed_updates=None)
-        await application.updater.wait_until_closed()
-        await application.stop()
-    else:
-        raise RuntimeError("Set MODE=polling for this build.")
-
-if __name__ == "__main__":
-    asyncio.run(run())
+    # В PTB 22 run_polling() сам позаботится о цикле; 
+    # он также удаляет вебхук при старте.
+    logger.info("Starting bot in POLLING mode")
+    application.run_polling(allowed_updates=None)
